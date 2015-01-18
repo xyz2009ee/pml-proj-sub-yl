@@ -1,0 +1,131 @@
+---
+title: "peer asssessment 1"
+output: html_document
+---
+
+
+```{r}
+library(zoo)
+setwd("C:/datasciencehw/reproducible research")
+data<-read.csv(file="activity.csv",header=TRUE, sep=",")  
+```
+```{r}
+date<-unique(data$date)
+TOTAL<-rep(0,length(date))
+MEAN<-rep(0,length(date))
+MEDIAN<-rep(0,length(date))
+for (i in 1:length(date)){
+  MEAN[i]<-mean(data[data$date==date[i],"steps"],na.rm=TRUE)
+	MEDIAN[i]<-median(data[data$date==date[i],"steps"],na.rm=TRUE)
+	TOTAL[i]<-sum(data[data$date==date[i],"steps"],na.rm=TRUE)
+}
+```
+Make a histogram of the total number of steps taken each day
+```{r}
+hist(TOTAL,xlab = "Time", ylab="Total", length(TOTAL),axes = FALSE)
+axis(1, at=seq(1,length(TOTAL),by=1),labels=as.character(date))
+axis(2)
+```
+Calculate and report the mean and median total number of steps taken per day
+```{r}
+MEDIAN<-cbind(MEDIAN,as.character(date))
+MEAN<-cbind(MEAN,as.character(date))
+write.table(x=MEDIAN,file="median.csv",append=FALSE,sep=",",row.names=FALSE,col.names=FALSE)
+write.table(x=MEAN,file="mean.csv",append=FALSE,sep=",",row.names=FALSE,col.names=FALSE)
+```
+
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis) 
+```{r}
+matrix.temp<-matrix(data[,1],ncol=length(date),byrow=FALSE)
+matrix.mean<-rowMeans(matrix.temp,na.rm=TRUE)
+```
+
+```{r, echo=FALSE}
+plot(matrix.mean,type="l")
+```
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps
+```{r}
+which(matrix.mean==max(matrix.mean,na.rm=TRUE))
+```
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r}
+Index<-which(is.na(data$steps)) 
+length(Index)
+```
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc
+Use the median values of each 5 min interval to fill in the missing values.
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r}
+for (i in 1:dim(matrix.temp)[1]){
+  index.temp<-which(is.na(matrix.temp[i,]))
+	if (length(index.temp)>0){
+	matrix.temp[i,index.temp]<-matrix.mean[i]
+}}
+vector.temp<-as.vector(matrix.temp)
+data.new<-data
+data.new[,1]<-vector.temp
+```
+mean total number of steps taken per day
+```{r}
+TOTAL.new<-rep(0,length(date))
+MEAN.new<-rep(0,length(date))
+MEDIAN.new<-rep(0,length(date))
+for (i in 1:length(date)){
+  MEAN.new[i]<-mean(data.new[data.new$date==date[i],"steps"],na.rm=TRUE)
+	MEDIAN.new[i]<-median(data.new[data.new$date==date[i],"steps"],na.rm=TRUE)
+	TOTAL.new[i]<-sum(data.new[data.new$date==date[i],"steps"],na.rm=TRUE)
+}
+```
+Make a histogram of the total number of steps taken each day
+```{r}
+hist(TOTAL.new,xlab = "Time", ylab="Total", length(TOTAL.new),axes = FALSE)
+axis(1, at=seq(1,length(TOTAL.new),by=1),labels=as.character(date))
+axis(2)
+```
+Calculate and report the mean and median total number of steps taken per day
+```{r}
+MEDIAN.new<-cbind(MEDIAN.new,as.character(date))
+MEAN.new<-cbind(MEAN.new,as.character(date))
+write.table(x=MEDIAN.new,file="median_new.csv",append=FALSE,sep=",",row.names=FALSE,col.names=FALSE)
+write.table(x=MEAN.new,file="mean_new.csv",append=FALSE,sep=",",row.names=FALSE,col.names=FALSE)
+```
+Yes, difference exisits. After filling in the missing values by median values, final estimates will be drawn more to the median of each 5 minute interval.
+
+Create a new factor variable in the dataset with two levels indicating whether a given date is a weekday or weekend day.
+```{r}
+date<-as.Date(data$date)
+weekdays<-weekdays(date)
+index.temp<-(weekdays!="Saturday")&(weekdays!="Sunday")
+index.temp[index.temp==TRUE]="weekday"
+index.temp[index.temp==FALSE]="weekend"
+data$weekdays.true<-index.temp
+```
+Make a time series plot (i.e. type = "l") of the 5-minute interval 
+(x-axis) and the average number of steps taken, averaged across all days (y-axis) for weekdays
+```{r}
+date<-unique(date)
+matrix.temp<-matrix(data[data$weekdays.true=="weekday",1],nrow=dim(data)[1]/length(date),byrow=FALSE)
+matrix.mean<-rowMeans(matrix.temp,na.rm=TRUE)
+```
+```{r,echo=FALSE}
+plot(matrix.mean,type="l",main="weekday")
+```
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis) for weekends
+```{r}
+date<-unique(date)
+matrix.temp<-matrix(data[data$weekdays.true=="weekend",1],nrow=dim(data)[1]/length(date),byrow=FALSE)
+matrix.mean<-rowMeans(matrix.temp,na.rm=TRUE)
+```
+```{r,echo=FALSE}
+plot(matrix.mean,type="l",main="weekend")
+```
+
+
+
+ 
+
+
+
+
+
